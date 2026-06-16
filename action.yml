@@ -57,12 +57,14 @@ runs:
         else
           COMMIT_OID="${{ github.sha }}"
           REF="${{ github.ref }}"
+          REPO_OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
           PR_NUMBER=$(gh pr list \
             --repo "$GITHUB_REPOSITORY" \
             --head "${{ github.ref_name }}" \
             --state open \
-            --json number \
-            --jq '.[0].number // empty' 2>/dev/null || true)
+            --json number,headRepositoryOwner,headRepository \
+            --jq "[.[] | select(.headRepositoryOwner.login == \"$REPO_OWNER\" and .headRepository.name == \"$REPO_NAME\")] | .[0].number // empty" 2>/dev/null || true)
         fi
 
         COMMIT_OID="$COMMIT_OID" \
